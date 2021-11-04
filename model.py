@@ -170,7 +170,7 @@ def LSTMFunction():
 
     model.fit(numpy.array(modelInputNormalized),
               numpy.array(modelTargetNormalized),
-              epochs=2000,
+              epochs=500,
               verbose=1,
               callbacks=callbacks_list,
               )
