@@ -21,7 +21,3 @@ trainingLibrary.getDataFromAllSongsInFolder()  # 101 songs
 mapping.mappingNoteToIntAllSongs()
 
 model.LSTMFunction()
-
-# trainingLibrary.train_network()
-
-# trainingLibrary.generateOUTPUT()
