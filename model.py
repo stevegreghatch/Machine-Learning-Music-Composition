@@ -29,11 +29,11 @@ def LSTMFunction():
     # input --------------------------------------------------------------------------------------
     # get mapping data
     # list of lists of data
-    modelInput = mapping.noteToIntLists
+    modelInputData = mapping.noteToIntLists
     # print('Model Input:')
     # print(modelInput)
 
-    numberOfSongs = (len(modelInput))
+    numberOfSongs = (len(modelInputData))
     print('\n')
     print('Total Number Of Songs:')
     print(numberOfSongs)
@@ -43,7 +43,7 @@ def LSTMFunction():
 
     # reshape data for model input
     largestNumberOfElements = 0
-    for song in modelInput:
+    for song in modelInputData:
         # print('\n')
         # print('Total Number Of Elements:')
         # print(len(song))
@@ -56,7 +56,7 @@ def LSTMFunction():
 
     # make all song lengths the same to ensure same shape for model input
     # extended by looping smaller songs to the same length of the longest song
-    for song in modelInput:
+    for song in modelInputData:
         for element in song:
             if len(song) < largestNumberOfElements:
                 song.append(element)
@@ -68,23 +68,13 @@ def LSTMFunction():
         # print(song)
     # print('\n')
     # print('New Model Input:')
-    # print(modelInput)
+    # print(modelInputData)
 
-    # reshape data to column array
-    arrayInput = numpy.array(modelInput)
-    reshapedArrayInput = numpy.column_stack(arrayInput)
+    # convert data to array
+    arrayModelInputData = numpy.array(modelInputData)
     # print('\n')
-    # print('reshapedArrayInput:')
-    # print(reshapedArrayInput)
-
-    modelInputReshaped = numpy.reshape(reshapedArrayInput, (1, largestNumberOfElements, numberOfSongs))
-    # numberOfSongs, largestNumberOfElements, 1
-    # print('\n')
-    # print('Model Input Reshaped:')
-    # print(modelInputReshaped)
-    print('\n')
-    print('modelInputReshaped.shape')
-    print(modelInputReshaped.shape)
+    # print('arrayInput:')
+    # print(arrayModelInputData)
 
     # normalize data
     numberOfUniqueElements = len(numpy.unique(mapping.noteToIntList))
@@ -92,71 +82,84 @@ def LSTMFunction():
     # print('Number of Unique Elements:')
     # print(numberOfUniqueElements)
 
-    for song in modelInputReshaped:
-        normalizedList = song / float(numberOfUniqueElements)
-        modelInputNormalized.append(normalizedList)
+    for data in arrayModelInputData:
+        data = data / float(numberOfUniqueElements)
+        modelInputDataNormalized.append(data)
     # print('\n')
-    # print('Model Input Reshaped and Normalized:')
-    # print(modelInputNormalized)
+    # print('modelInputDataNormalized')
+    # print(modelInputDataNormalized)
+
+    # reshape data
+    modelInputDataNormalizedAndReshaped = numpy.reshape(modelInputDataNormalized,
+                                                        (largestNumberOfElements*numberOfSongs, 1))
 
     # target  --------------------------------------------------------------------------------------
     # copy same size int model input data
-    modelTarget = copy.deepcopy(modelInput)
+    modelTargets = copy.deepcopy(modelInputData)
     # print('\n')
     # print('Model Target:')
     # print(modelTarget)
 
     # shift data - move all over by one to establish target sequence
-    for song in modelTarget:
+    for song in modelTargets:
         shiftedList = collections.deque(song)
         shiftedList.rotate(-1)
         shiftedList = list(shiftedList)
-        modelTargetShifted.append(shiftedList)
+        modelTargetsShifted.append(shiftedList)
     # print('\n')
     # print('Model Target Shifted:')
     # print(modelTargetShifted)
 
-    # reshape data to column array
-    arrayOutput = numpy.array(modelTargetShifted)
-    reshapedArrayTarget = numpy.column_stack(arrayOutput)
+    # convert to array
+    arrayModelTargetsShifted = numpy.array(modelTargetsShifted)
     # print('\n')
-    # print('reshapedArrayTarget:')
-    # print(reshapedArrayTarget)
-
-    # reshape target data
-    modelTargetReshaped = numpy.reshape(reshapedArrayTarget, (1, largestNumberOfElements, numberOfSongs))
-    # print('\n')
-    # print('Model Target Reshaped:')
-    # print(modelTargetReshaped)
-    print('modelTargetReshaped.shape')
-    print(modelTargetReshaped.shape)
+    # print('arrayModelTargetsShifted')
+    # print(arrayModelTargetsShifted)
 
     # normalize output data
-    for song in modelTargetReshaped:
-        normalizedList = song / float(numberOfUniqueElements)
-        modelTargetNormalized.append(normalizedList)
+    for data in arrayModelTargetsShifted:
+        data = data / float(numberOfUniqueElements)
+        modelTargetDataNormalized.append(data)
     # print('\n')
     # print('Model Target Reshaped and Normalized:')
-    # print(modelTargetNormalized)
+    # print(modelTargetDataNormalized)
 
-    # LSTM model -------------------------------------
+    # reshape data
+    modelTargetDataNormalizedAndReshaped = numpy.reshape(modelTargetDataNormalized,
+                                                         (largestNumberOfElements*numberOfSongs, 1))
+    print('\n')
+    print('modelInputDataNormalizedAndReshaped.shape')
+    print(modelInputDataNormalizedAndReshaped.shape)
+    print('\n')
+    print('modelTargetDataNormalizedAndReshaped.shape')
+    print(modelTargetDataNormalizedAndReshaped.shape)
 
-    inputShape = largestNumberOfElements, numberOfSongs
-    print('inputShape:')
+    # construct generator with both input data and target data
+    generator = TimeseriesGenerator(modelInputDataNormalizedAndReshaped, modelTargetDataNormalizedAndReshaped,
+                                    length=numberOfSongs)
+
+    inputShape = (largestNumberOfElements*numberOfSongs, 1)
+    print('\n')
+    print('inputShape')
     print(inputShape)
 
     model = Sequential()
-
-    model.add(Bidirectional(CuDNNLSTM(numberOfSongs, input_shape=inputShape, return_sequences=True)))
-    model.add(Bidirectional(CuDNNLSTM(numberOfSongs, input_shape=inputShape, return_sequences=True)))
-    model.add(TimeDistributed(Dense(numberOfSongs, activation='sigmoid')))
-
-    # model.add(CuDNNLSTM(numberOfSongs, input_shape=inputShape, return_sequences=True))
-    # model.add(CuDNNLSTM(numberOfSongs, input_shape=inputShape, return_sequences=True))
-    # model.add(Dense(numberOfSongs))
-    # model.add(Activation('softmax'))
-
+    model.add(CuDNNLSTM(
+        512,
+        input_shape=inputShape,
+        return_sequences=True
+    ))
+    model.add(Dropout(0.3))
+    model.add(CuDNNLSTM(512, return_sequences=True))
+    model.add(Dropout(0.3))
+    model.add(CuDNNLSTM(512))
+    model.add(Dense(256))
+    model.add(Dropout(0.3))
+    model.add(Dense(largestNumberOfElements))
+    model.add(Activation('softmax'))
     model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
+
+    # model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
 
     filepath = 'model-best-.hdf5'
     checkpoint = ModelCheckpoint(
@@ -168,9 +171,8 @@ def LSTMFunction():
     )
     callbacks_list = [checkpoint]
 
-    model.fit(numpy.array(modelInputNormalized),
-              numpy.array(modelTargetNormalized),
-              epochs=500,
+    model.fit(generator,
+              epochs=50,
               verbose=1,
               callbacks=callbacks_list,
               )
