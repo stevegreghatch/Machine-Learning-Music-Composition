@@ -1,6 +1,13 @@
 import collections
 import copy
 import random
+import logging
+import os
+import numpy
+import mapping
+
+from music21 import note, chord, instrument, stream
+from music21 import *
 
 import keras.layers
 from keras.models import Sequential
@@ -14,14 +21,6 @@ from keras.layers import CuDNNLSTM
 from sklearn.model_selection import train_test_split
 from keras import utils
 from keras.layers import TimeDistributed, Bidirectional
-
-import logging
-import os
-import numpy
-from music21 import note, chord, instrument, stream
-from music21 import *
-
-import mapping
 
 # list init
 modelTargetShifted = []
@@ -159,8 +158,6 @@ def LSTMFunction():
     model.add(Bidirectional(CuDNNLSTM(numberOfSongs, input_shape=inputShape, return_sequences=True)))
     model.add(Bidirectional(CuDNNLSTM(numberOfSongs, input_shape=inputShape, return_sequences=True)))
     model.add(TimeDistributed(Dense(numberOfSongs, activation='sigmoid')))
-
-    # maxing out around 0.3865 accuracy
 
     # model.add(CuDNNLSTM(numberOfSongs, input_shape=inputShape, return_sequences=True))
     # model.add(CuDNNLSTM(numberOfSongs, input_shape=inputShape, return_sequences=True))
@@ -348,5 +345,5 @@ def LSTMFunction():
     print('outputComposition')
     print(outputComposition)
     midiStream.append(outputComposition)
-    midiStream.write('midi', fp='C:/Users/steve/Desktop/Midi_Output/testOutput.mid')
+    midiStream.write('midi', fp='-/Midi_Output/testOutput.mid')
     midiStream.show('midi')
