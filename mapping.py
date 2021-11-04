@@ -1,5 +1,4 @@
 import numpy
-
 import trainingLibrary
 
 # map noteAndDuration elements to int value while maintaining order of composition
