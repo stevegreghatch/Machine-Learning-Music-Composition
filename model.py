@@ -145,20 +145,12 @@ def LSTMFunction():
 
     model = Sequential()
     model.add(CuDNNLSTM(
-        512,
+        numberOfSongs,
         input_shape=inputShape,
         return_sequences=True
     ))
-    model.add(Dropout(0.3))
-    model.add(CuDNNLSTM(512, return_sequences=True))
-    model.add(Dropout(0.3))
-    model.add(CuDNNLSTM(512))
-    model.add(Dense(256))
-    model.add(Dropout(0.3))
-    model.add(Dense(largestNumberOfElements))
-    model.add(Activation('softmax'))
-    model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
 
+    model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
     # model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
 
     filepath = 'model-best-.hdf5'
