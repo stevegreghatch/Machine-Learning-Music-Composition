@@ -56,8 +56,3 @@ def mappingNoteToIntAllSongs():
     # print(noteToIntList)
     # print('\n')
     # print(noteToIntLists)
-
-    # ---------------------------------------------
-
-# TRAIL NUMBER 2
-
