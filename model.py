@@ -6,21 +6,13 @@ import os
 import numpy
 import mapping
 
-from music21 import note, chord, instrument, stream
 from music21 import *
 
-import keras.layers
 from keras.models import Sequential
-from keras.layers import LSTM
-from keras.layers import Dense
-from keras.layers import Dropout
-from keras.layers import Activation
+from keras.layers import LSTM, Dense, Dropout, Activation, BatchNormalization, CuDNNLSTM, TimeDistributed, Bidirectional
 from keras.callbacks import ModelCheckpoint
-from keras.layers import BatchNormalization
-from keras.layers import CuDNNLSTM
-from sklearn.model_selection import train_test_split
+# from sklearn.model_selection import train_test_split
 from keras import utils
-from keras.layers import TimeDistributed, Bidirectional
 
 # list init
 modelTargetShifted = []
