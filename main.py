@@ -1,6 +1,6 @@
 import mapping
+import modelV3
 import trainingLibrary
-import model
 
 # set .mid and .midi to windows media player
 
@@ -12,7 +12,7 @@ import model
 
 # ---------------------------------------------------
 
-trainingLibrary.getDataFromRandomSelectionOfSongsFromCorpus()  # 101 random
+# trainingLibrary.getDataFromRandomSelectionOfSongsFromCorpus()  # x random
 
 trainingLibrary.getDataFromAllSongsInFolder()  # 101 songs
 
@@ -20,4 +20,11 @@ trainingLibrary.getDataFromAllSongsInFolder()  # 101 songs
 
 mapping.mappingNoteToIntAllSongs()
 
-model.LSTMFunction()
+# ---------------------------------------------------
+
+modelV3.LSTMFunction()
+
+
+
+
+
