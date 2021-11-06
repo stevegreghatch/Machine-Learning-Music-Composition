@@ -1,6 +1,12 @@
-import collections
-import copy
-import random
+# import tensorflow.keras.preprocessing
+# from keras.preprocessing.sequence import TimeseriesGenerator
+# from sklearn.model_selection import train_test_split
+
+from keras.models import Sequential
+from keras.layers import LSTM, CuDNNLSTM, Dense, Dropout, Activation, BatchNormalization, TimeDistributed, Bidirectional
+from keras.callbacks import ModelCheckpoint
+from keras.utils import np_utils
+
 import logging
 import os
 import numpy
@@ -8,55 +14,35 @@ import mapping
 
 from music21 import *
 
-from keras.models import Sequential
-from keras.layers import LSTM, Dense, Dropout, Activation, BatchNormalization, CuDNNLSTM, TimeDistributed, Bidirectional
-from keras.callbacks import ModelCheckpoint
-# from sklearn.model_selection import train_test_split
-from keras import utils
-
-# list init
-modelTargetShifted = []
-modelInputNormalized = []
-modelTargetNormalized = []
-
 # used to disable tensorflow info messages
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '1'
 logging.getLogger('tensorflow').disabled = True
 
-
 def LSTMFunction():
-
     # input --------------------------------------------------------------------------------------
-    # get mapping data
-    # list of lists of data
-    modelInputData = mapping.noteToIntLists
-    # print('Model Input:')
-    # print(modelInput)
+    # get mapping data - list of notes
+    noteAndDurationToIntMultipleLists = mapping.noteAndDurationToIntMultipleLists
+    # print('noteAndDurationToIntMultipleLists')
+    # print(noteAndDurationToIntMultipleLists)
 
-    numberOfSongs = (len(modelInputData))
-    print('\n')
-    print('Total Number Of Songs:')
+    numberOfSongs = (len(noteAndDurationToIntMultipleLists))
+    # print('\n')
+    print('numberOfSongs')
     print(numberOfSongs)
 
-    print('\n')
-    print('Reshaping data for model input')
-
-    # reshape data for model input
+    # extend data for model input
+    # extended by looping smaller songs to the same length of the longest song
     largestNumberOfElements = 0
-    for song in modelInputData:
+    for song in noteAndDurationToIntMultipleLists:
         # print('\n')
         # print('Total Number Of Elements:')
         # print(len(song))
-
         if len(song) > largestNumberOfElements:
             largestNumberOfElements = len(song)
-    print('\n')
-    print('largestNumberOfElements:')
+    # print('\n')
+    print('largestNumberOfElements')
     print(largestNumberOfElements)
-
-    # make all song lengths the same to ensure same shape for model input
-    # extended by looping smaller songs to the same length of the longest song
-    for song in modelInputData:
+    for song in noteAndDurationToIntMultipleLists:
         for element in song:
             if len(song) < largestNumberOfElements:
                 song.append(element)
@@ -67,91 +53,78 @@ def LSTMFunction():
         # print('Extended Song')
         # print(song)
     # print('\n')
-    # print('New Model Input:')
-    # print(modelInputData)
+    # print('noteAndDurationToIntMultipleLists')
+    # print(noteAndDurationToIntMultipleLists)
+    noteAndDurationToIntOneList = mapping.noteAndDurationToIntOneList
+    # print('noteAndDurationToIntOneList')
+    # print(noteAndDurationToIntOneList)
+    noteAndDurationToIntWithEnumerate = mapping.noteAndDurationToIntWithEnumerate
+    # print('noteAndDurationToIntWithEnumerate')
+    # print(noteAndDurationToIntWithEnumerate)
 
-    # convert data to array
-    arrayModelInputData = numpy.array(modelInputData)
+    sequenceLength = 100
+    modelInput = []
+    modelTarget = []
+    for i in range(0, len(noteAndDurationToIntOneList) - sequenceLength, 1):
+        sequenceIn = noteAndDurationToIntOneList[i:i + sequenceLength]
+        sequenceOut = noteAndDurationToIntOneList[i + sequenceLength]
+        modelInput.append(sequenceIn)
+        modelTarget.append(noteAndDurationToIntWithEnumerate[sequenceOut])
     # print('\n')
-    # print('arrayInput:')
-    # print(arrayModelInputData)
-
-    # normalize data
-    numberOfUniqueElements = len(numpy.unique(mapping.noteToIntList))
-    # print('\n')
-    # print('Number of Unique Elements:')
+    # print('modelInputV3')
+    # print(modelInput)
+    # print('len(modelInput)V3')
+    # print(len(modelInput))
+    numberOfSequences = len(modelInput)
+    print('numberOfSequences')
+    print(numberOfSequences)
+    
+    # reshape
+    modelInput = numpy.reshape(modelInput, (numberOfSequences, sequenceLength, 1))
+    # print('modelInputReshapedV3')
+    # print(modelInput)
+    # print('modelInput.shapeV3')
+    # print(modelInput.shape)
+    
+    # normalize
+    numberOfUniqueElements = len(numpy.unique(noteAndDurationToIntOneList))
+    # print('numberOfUniqueElementsV3')
     # print(numberOfUniqueElements)
+    modelInput = modelInput / float(numberOfUniqueElements)
+    # print('modelInputReshapedAndNormalizedV3')
+    # print(modelInput)
+    print('modelInput.shapeV3')
+    print(modelInput.shape)
 
-    for data in arrayModelInputData:
-        data = data / float(numberOfUniqueElements)
-        modelInputDataNormalized.append(data)
-    # print('\n')
-    # print('modelInputDataNormalized')
-    # print(modelInputDataNormalized)
-
-    # reshape data
-    modelInputDataNormalizedAndReshaped = numpy.reshape(modelInputDataNormalized,
-                                                        (largestNumberOfElements*numberOfSongs, 1))
-
-    # target  --------------------------------------------------------------------------------------
-    # copy same size int model input data
-    modelTargets = copy.deepcopy(modelInputData)
-    # print('\n')
-    # print('Model Target:')
+    # print('modelTargetV3')
     # print(modelTarget)
+    modelTargetUpdated = []
+    for data in modelTarget:
+        data = data[0]
+        modelTargetUpdated.append(data)
+    # print('modelTargetUpdatedV3')
+    # print(modelTargetUpdated)
+    modelTarget = np_utils.to_categorical(modelTargetUpdated)
+    # print('modelTargetV3')
+    # print(modelTarget)
+    print('modelTarget.shapeV3')
+    print(modelTarget.shape)
 
-    # shift data - move all over by one to establish target sequence
-    for song in modelTargets:
-        shiftedList = collections.deque(song)
-        shiftedList.rotate(-1)
-        shiftedList = list(shiftedList)
-        modelTargetsShifted.append(shiftedList)
-    # print('\n')
-    # print('Model Target Shifted:')
-    # print(modelTargetShifted)
+    # TRAIN MODEL
 
-    # convert to array
-    arrayModelTargetsShifted = numpy.array(modelTargetsShifted)
-    # print('\n')
-    # print('arrayModelTargetsShifted')
-    # print(arrayModelTargetsShifted)
-
-    # normalize output data
-    for data in arrayModelTargetsShifted:
-        data = data / float(numberOfUniqueElements)
-        modelTargetDataNormalized.append(data)
-    # print('\n')
-    # print('Model Target Reshaped and Normalized:')
-    # print(modelTargetDataNormalized)
-
-    # reshape data
-    modelTargetDataNormalizedAndReshaped = numpy.reshape(modelTargetDataNormalized,
-                                                         (largestNumberOfElements*numberOfSongs, 1))
-    print('\n')
-    print('modelInputDataNormalizedAndReshaped.shape')
-    print(modelInputDataNormalizedAndReshaped.shape)
-    print('\n')
-    print('modelTargetDataNormalizedAndReshaped.shape')
-    print(modelTargetDataNormalizedAndReshaped.shape)
-
-    # construct generator with both input data and target data
-    generator = TimeseriesGenerator(modelInputDataNormalizedAndReshaped, modelTargetDataNormalizedAndReshaped,
-                                    length=numberOfSongs)
-
-    inputShape = (largestNumberOfElements*numberOfSongs, 1)
-    print('\n')
-    print('inputShape')
+    inputShape = (sequenceLength, 1)
+    print('inputShapeV3')
     print(inputShape)
 
     model = Sequential()
     model.add(CuDNNLSTM(
-        numberOfSongs,
+        128,
         input_shape=inputShape,
         return_sequences=True
     ))
-
     model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
-    # model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
+
+    print(model.summary())
 
     filepath = 'model-best-.hdf5'
     checkpoint = ModelCheckpoint(
@@ -159,155 +132,158 @@ def LSTMFunction():
         monitor='loss',
         verbose=0,
         save_best_only=True,
-        mode='min'
     )
     callbacks_list = [checkpoint]
 
-    model.fit(generator,
-              epochs=50,
+    model.fit(x=modelInput,
+              y=modelTarget,
+              epochs=10,
               verbose=1,
               callbacks=callbacks_list,
               )
 
-    print('\n')
+    # USE TRAINED MODEL FOR OUTPUT
+    modelInputForOutput = []
+    output = []
+    for i in range(0, len(noteAndDurationToIntOneList) - sequenceLength, 1):
+        sequenceIn = noteAndDurationToIntOneList[i:i + sequenceLength]
+        sequenceOut = noteAndDurationToIntOneList[i + sequenceLength]
+        modelInputForOutput.append(sequenceIn)
+        output.append(noteAndDurationToIntWithEnumerate[sequenceOut])
+    # print('modelInputForOutput')
+    # print(modelInputForOutput)
+    # numberOfSequences = len(modelInputForOutput)
+    # modelInputNormalized = numpy.reshape(modelInputForOutput, (numberOfSequences, sequenceLength, 1))
+    # modelInputNormalized = modelInputNormalized / float(numberOfUniqueElements)
+    # print('modelInputNormalizedV3')
+    # print(modelInputNormalized)
+    # print('modelInputNormalizedV3.shape')
+    # print(modelInputNormalized.shape)
+    outputUpdated = []
+    for data in output:
+        data = data[0]
+        outputUpdated.append(data)
+    # print('outputV3')
+    # print(outputUpdated)
+
+    # OUTPUT MODEL
+
+    inputShape = (sequenceLength, 1)
+    print('inputShapeV3')
+    print(inputShape)
+
+    model = Sequential()
+    model.add(CuDNNLSTM(
+        128,
+        input_shape=inputShape,
+        return_sequences=True
+    ))
+    model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
+    model.load_weights('model-best-.hdf5')
+
     print(model.summary())
 
-    # model output -------------------------------------------------------------
+    # get prediction from model
+    # start by getting 100 sequence from model input
+    startInt = numpy.random.randint(0, len(modelInputForOutput)-1)
+    # print('startIntV3')
+    # print(startInt)
+    sequence = modelInputForOutput[startInt]
+    # print('sequenceV3')
+    # print(sequence)
+    # print('len(sequenceFromStartInt)V3')
+    # print(len(sequenceFromStartInt))
 
-    # load weights from model
-    model.load_weights(filepath)
-
-    # get prediction from model to for sequence
-    # prediction needs to be in format int that was reshaped and normalized and converted to numpy array
     predictedSong = []
-    c = 0
-    startingIntList = []
-    highestFrequencyInt = 0
-    predictionList = []
-    # create 100 note composition
-    for i in range(100):
-        # first, get random starting int
-        if c == 0:
-            startingIntList = []
-            startingInt = mapping.noteToIntList[random.randint(0, len(mapping.noteToIntList) - 1)]
-            # print('\n')
-            # print('startingInt:')
-            # print(startingInt)
-            # make startingInt into list that is same size as model shape
-            while len(startingIntList) < numberOfSongs:
-                startingIntList.append(startingInt)
-            # print('\n')
-            # print('startingIntList:')
-            # print(startingIntList)
-            predictionList.append(startingInt)
-        # get previous prediction to predict new note in sequence based on previous prediction
-        if c > 0:
-            startingIntList = []
-            startingInt = highestFrequencyInt
-            # print(highestFrequencyInt)
-            # make startingInt into list that is same size as model shape
-            while len(startingIntList) < numberOfSongs:
-                startingIntList.append(startingInt)
-            # print('\n')
-            # print('startingIntList:')
-            # print(startingIntList)
-            predictionList.append(startingInt)
+    for i in range(10):
+        # reshape sequence to 3D
+        predictionInputReshaped = numpy.reshape(sequence, (1, len(sequence), 1))
+        # print('predictionInputReshapedV3')
+        # print(predictionInputReshaped)
 
-        # reshape data to array
-        arrayInt = numpy.array(startingIntList)
-        reshapedArrayInt = numpy.column_stack(arrayInt)
-        # print('\n')
-        # print('reshapedArrayInt:')
-        # print(reshapedArrayInt)
-
-        # reshape data to 3D
-        startingIntReshaped = numpy.reshape(reshapedArrayInt, (1, 1, numberOfSongs))
-        # print('\n')
-        # print('startingIntReshaped')
-        # print(startingIntReshaped)
-
-        # normalize data
-        normalizedStartingInt = startingIntReshaped / float(numberOfUniqueElements)
-        # print('\n')
-        # print('normalizedStartingInt ---- PREDICTION INPUT')
-        # print(normalizedStartingInt)
+        # normalize sequence
+        predictionInputNormalized = predictionInputReshaped / float(numberOfUniqueElements)
+        # print('predictionInputNormalizedV3')
+        # print(predictionInputNormalized)
 
         # get prediction
-        prediction = model.predict(normalizedStartingInt, verbose=0)
-        # print('\n')
-        # print('PREDICTION ---- PREDICTION OUTPUT')
+        prediction = model.predict(predictionInputNormalized, verbose=0)
+        # print('PREDICTION ---- PREDICTION OUTPUT - V3')
         # print(prediction)
 
         # denormalize prediction
         denormalizedPrediction = prediction * float(numberOfUniqueElements)
-        # print('\n')
         # print('denormalizedPrediction')
         # print(denormalizedPrediction)
+
         # round to nearest int
         denormalizedPredictionRounded = (numpy.round(denormalizedPrediction, 0)).astype(int)
-        # print('\n')
         # print('denormalizedPredictionRounded')
         # print(denormalizedPredictionRounded)
 
         # reshape
         denormalizedPredictionRoundedReshaped = numpy.reshape(denormalizedPredictionRounded, -1)
-        # print('\n')
         # print('denormalizedPredictionRoundedReshaped')
         # print(denormalizedPredictionRoundedReshaped)
+        # print('len(denormalizedPredictionRoundedReshaped)')
+        # print(len(denormalizedPredictionRoundedReshaped))
+        # print('numberOfUniqueElements')
+        # print(numberOfUniqueElements)
 
-        # get highest frequency int from array
-        counts = numpy.bincount(denormalizedPredictionRoundedReshaped)
-        highestFrequencyInt = numpy.argmax(counts)
-        # print('\n')
-        # print('highestFrequencyInt')
-        # print(highestFrequencyInt)
+        # get index with highest frequency and its location from array
+        # this target output array represents numberOfUniqueElements
+        highestInt = 0
+        for element in denormalizedPredictionRoundedReshaped:
+            if element > highestInt:
+                highestInt = element
+        # index = numpy.where(denormalizedPredictionRoundedReshaped == highestInt)[0]
+        # print('highestIntAndIndex')
+        # print(highestInt, index)
+        indexWithMostPredictions = int(numpy.argmax(prediction))
+        # print('indexWithMostPredictionsV3')
+        # print(indexWithMostPredictions)
 
         # convert int back to note and duration and append to list
-        for element in mapping.noteToIntWithData:
-            if highestFrequencyInt == element[0]:
-                notePitchAndDurationMatch = element[1]
-                # print('\n')
-                # print('notePitchAndDurationMatch')
-                # print(notePitchAndDurationMatch)
-                predictedSong.append(notePitchAndDurationMatch)
+        notePitchAndDurationMatch = noteAndDurationToIntWithEnumerate[indexWithMostPredictions]
+        notePitchAndDurationMatch = notePitchAndDurationMatch[1]
+        # print('notePitchAndDurationMatchV3')
+        # print(notePitchAndDurationMatch)
 
-        c += 1
+        # append to predicted song list for later midi conversion
+        predictedSong.append(notePitchAndDurationMatch)
+        # print('predictedSongV3')
+        # print(predictedSong)
 
-    # print('\n')
-    # print('mapping.noteToIntWithData')
-    # print(mapping.noteToIntWithData)
+        sequence.append(indexWithMostPredictions)
+        # print('sequenceWithNewIndexAppendedV3')
+        # print(sequence)
 
-    print('\n')
-    print('predictionList')
-    print(predictionList)
-
-    print('\n')
-    print('PREDICTED SONG ------------------------------------ ')
+        # remove first element from sequence to create updated sequence for next prediction
+        sequence = sequence[1:len(sequence)]
+        # print('sequenceWithFirstElementRemovedV3')
+        # print(sequence)
+        # print('\n')
+    print('predictedSongV3')
     print(predictedSong)
 
     # convert note:duration to music 21 format for midi output
     outputComposition = []
-    midiStream = stream.Stream()
-    print('\n')
     for element in predictedSong:
         noteToSet = element.split(':')[0]
         durationToSet = element.split(':')[1]
-        # print(durationToSet)
-        if '/' in durationToSet:
-            durationToSet = durationToSet.split('/')
-            num = int(durationToSet[0])
-            denom = int(durationToSet[1])
-            durationToSet = "{:.2f}".format(float(num/denom))
-        # print('\n')
-        # print('len(noteToSet)')
-        # print(len(noteToSet))
-        # note - needs to be converted from string to music 21 note
+        # regular note
         if len(noteToSet) <= 3:
             newNote = note.Note(noteToSet)
             newNote.quarterLength = float(durationToSet)
             newNote.storedInstrument = instrument.Piano()
             outputComposition.append(newNote)
-        # chord - needs to be converted from string to list to music 21 chord
+        # rest
+        elif 'rest' in element:
+            newRest = note.Rest(element)
+            newRest.quarterLength = float(durationToSet)
+            newRest.storedInstrument = instrument.Piano()
+            outputComposition.append(newRest)
+        # chord
         else:
             # print('noteToSet')
             # print(noteToSet)
@@ -327,9 +303,12 @@ def LSTMFunction():
             newChord.storedInstrument = instrument.Piano()
             newChord.quarterLength = float(durationToSet)
             outputComposition.append(newChord)
-    print('\n')
-    print('outputComposition')
-    print(outputComposition)
-    midiStream.append(outputComposition)
-    midiStream.write('midi', fp='-/Midi_Output/testOutput.mid')
+        # print('outputCompositionV3')
+        # print(outputComposition)
+        # print('len(outputComposition)V3')
+        # print(len(outputComposition))
+    # print('outputCompositionV3')
+    # print(outputComposition)
+    midiStream = stream.Stream(outputComposition)
+    midiStream.write('midi', fp='-Midi_Output/testOutputATTEMPT3.mid')
     midiStream.show('midi')
