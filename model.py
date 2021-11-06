@@ -142,6 +142,7 @@ def LSTMFunction():
               callbacks=callbacks_list,
               )
 
+    # output  --------------------------------------------------------------------------------------
     # USE TRAINED MODEL FOR OUTPUT
     modelInputForOutput = []
     output = []
