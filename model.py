@@ -15,7 +15,7 @@ import mapping
 from music21 import *
 
 # used to disable tensorflow info messages
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '1'
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 logging.getLogger('tensorflow').disabled = True
 
 def LSTMFunction():
@@ -71,49 +71,47 @@ def LSTMFunction():
         modelInput.append(sequenceIn)
         modelTarget.append(noteAndDurationToIntWithEnumerate[sequenceOut])
     # print('\n')
-    # print('modelInputV3')
+    # print('modelInput')
     # print(modelInput)
-    # print('len(modelInput)V3')
+    # print('len(modelInput)')
     # print(len(modelInput))
     numberOfSequences = len(modelInput)
     print('numberOfSequences')
     print(numberOfSequences)
-    
-    # reshape
+    # Reshape
     modelInput = numpy.reshape(modelInput, (numberOfSequences, sequenceLength, 1))
-    # print('modelInputReshapedV3')
+    # print('modelInputReshaped')
     # print(modelInput)
-    # print('modelInput.shapeV3')
+    # print('modelInput.shape')
     # print(modelInput.shape)
-    
-    # normalize
+    # Normalize
     numberOfUniqueElements = len(numpy.unique(noteAndDurationToIntOneList))
-    # print('numberOfUniqueElementsV3')
+    # print('numberOfUniqueElements')
     # print(numberOfUniqueElements)
     modelInput = modelInput / float(numberOfUniqueElements)
-    # print('modelInputReshapedAndNormalizedV3')
+    # print('modelInputReshapedAndNormalized')
     # print(modelInput)
-    print('modelInput.shapeV3')
+    print('modelInput.shape')
     print(modelInput.shape)
 
-    # print('modelTargetV3')
+    # print('modelTarget')
     # print(modelTarget)
     modelTargetUpdated = []
     for data in modelTarget:
         data = data[0]
         modelTargetUpdated.append(data)
-    # print('modelTargetUpdatedV3')
+    # print('modelTargetUpdated')
     # print(modelTargetUpdated)
     modelTarget = np_utils.to_categorical(modelTargetUpdated)
-    # print('modelTargetV3')
+    # print('modelTarget')
     # print(modelTarget)
-    print('modelTarget.shapeV3')
+    print('modelTarget.shape')
     print(modelTarget.shape)
 
     # TRAIN MODEL
 
     inputShape = (sequenceLength, 1)
-    print('inputShapeV3')
+    print('inputShape')
     print(inputShape)
 
     model = Sequential()
@@ -132,18 +130,19 @@ def LSTMFunction():
         monitor='loss',
         verbose=0,
         save_best_only=True,
+        mode='min'
     )
     callbacks_list = [checkpoint]
 
     model.fit(x=modelInput,
               y=modelTarget,
-              epochs=10,
+              epochs=5,
               verbose=1,
               callbacks=callbacks_list,
               )
 
-    # output  --------------------------------------------------------------------------------------
-    # USE TRAINED MODEL FOR OUTPUT
+    # output --------------------------------------------------------------------------------------
+    # use model for output
     modelInputForOutput = []
     output = []
     for i in range(0, len(noteAndDurationToIntOneList) - sequenceLength, 1):
@@ -156,22 +155,24 @@ def LSTMFunction():
     # numberOfSequences = len(modelInputForOutput)
     # modelInputNormalized = numpy.reshape(modelInputForOutput, (numberOfSequences, sequenceLength, 1))
     # modelInputNormalized = modelInputNormalized / float(numberOfUniqueElements)
-    # print('modelInputNormalizedV3')
+    # print('modelInputNormalized')
     # print(modelInputNormalized)
-    # print('modelInputNormalizedV3.shape')
+    # print('modelInputNormalized.shape')
     # print(modelInputNormalized.shape)
+
     outputUpdated = []
     for data in output:
         data = data[0]
         outputUpdated.append(data)
-    # print('outputV3')
+
+    # print('output')
     # print(outputUpdated)
 
     # OUTPUT MODEL
 
     inputShape = (sequenceLength, 1)
-    print('inputShapeV3')
-    print(inputShape)
+    # print('inputShape')
+    # print(inputShape)
 
     model = Sequential()
     model.add(CuDNNLSTM(
@@ -187,29 +188,30 @@ def LSTMFunction():
     # get prediction from model
     # start by getting 100 sequence from model input
     startInt = numpy.random.randint(0, len(modelInputForOutput)-1)
-    # print('startIntV3')
+    # print('startInt')
     # print(startInt)
     sequence = modelInputForOutput[startInt]
-    # print('sequenceV3')
+    # print('sequence')
     # print(sequence)
-    # print('len(sequenceFromStartInt)V3')
+    # print('len(sequenceFromStartInt)')
     # print(len(sequenceFromStartInt))
 
     predictedSong = []
-    for i in range(10):
+    # set number of note:duration elements for output composition
+    for i in range(largestNumberOfElements):
         # reshape sequence to 3D
         predictionInputReshaped = numpy.reshape(sequence, (1, len(sequence), 1))
-        # print('predictionInputReshapedV3')
+        # print('predictionInputReshaped')
         # print(predictionInputReshaped)
 
         # normalize sequence
         predictionInputNormalized = predictionInputReshaped / float(numberOfUniqueElements)
-        # print('predictionInputNormalizedV3')
+        # print('predictionInputNormalized')
         # print(predictionInputNormalized)
 
         # get prediction
         prediction = model.predict(predictionInputNormalized, verbose=0)
-        # print('PREDICTION ---- PREDICTION OUTPUT - V3')
+        # print('PREDICTION ---- PREDICTION OUTPUT')
         # print(prediction)
 
         # denormalize prediction
@@ -241,37 +243,42 @@ def LSTMFunction():
         # print('highestIntAndIndex')
         # print(highestInt, index)
         indexWithMostPredictions = int(numpy.argmax(prediction))
-        # print('indexWithMostPredictionsV3')
+        # print('indexWithMostPredictions')
         # print(indexWithMostPredictions)
 
         # convert int back to note and duration and append to list
         notePitchAndDurationMatch = noteAndDurationToIntWithEnumerate[indexWithMostPredictions]
         notePitchAndDurationMatch = notePitchAndDurationMatch[1]
-        # print('notePitchAndDurationMatchV3')
+        # print('notePitchAndDurationMatch')
         # print(notePitchAndDurationMatch)
 
         # append to predicted song list for later midi conversion
         predictedSong.append(notePitchAndDurationMatch)
-        # print('predictedSongV3')
+        # print('predictedSong')
         # print(predictedSong)
 
         sequence.append(indexWithMostPredictions)
-        # print('sequenceWithNewIndexAppendedV3')
+        # print('sequenceWithNewIndexAppended')
         # print(sequence)
 
-        # remove first element from sequence to create updated sequence for next prediction
+        # remove first element from sequence to create new sequence for next prediction
         sequence = sequence[1:len(sequence)]
-        # print('sequenceWithFirstElementRemovedV3')
+        # print('sequenceWithFirstElementRemoved')
         # print(sequence)
         # print('\n')
-    print('predictedSongV3')
+    print('predictedSong')
     print(predictedSong)
 
-    # convert note:duration to music 21 format for midi output
+    # createMidi
     outputComposition = []
     for element in predictedSong:
         noteToSet = element.split(':')[0]
         durationToSet = element.split(':')[1]
+        if '/' in durationToSet:
+            durationToSet = durationToSet.split('/')
+            num = int(durationToSet[0])
+            denom = int(durationToSet[1])
+            durationToSet = "{:.2f}".format(float(num/denom))
         # regular note
         if len(noteToSet) <= 3:
             newNote = note.Note(noteToSet)
@@ -304,12 +311,12 @@ def LSTMFunction():
             newChord.storedInstrument = instrument.Piano()
             newChord.quarterLength = float(durationToSet)
             outputComposition.append(newChord)
-        # print('outputCompositionV3')
+        # print('outputComposition')
         # print(outputComposition)
-        # print('len(outputComposition)V3')
+        # print('len(outputComposition)')
         # print(len(outputComposition))
-    # print('outputCompositionV3')
+    # print('outputComposition')
     # print(outputComposition)
     midiStream = stream.Stream(outputComposition)
-    midiStream.write('midi', fp='-Midi_Output/testOutputATTEMPT3.mid')
+    midiStream.write('midi', fp='Midi_Output/outputComposition.mid')
     midiStream.show('midi')
