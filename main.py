@@ -8,13 +8,13 @@ import trainingLibrary
 
 # trainingLibrary.playRandomSelectionFromCorpus()
 
-# trainingLibrary.playRandomSelectionFromPersonalCollection() # x random
+# trainingLibrary.playRandomSelectionFromPersonalCollection()
 
 # ---------------------------------------------------
 
-# trainingLibrary.getDataFromRandomSelectionOfSongsFromCorpus()  # x random
+# trainingLibrary.getDataFromRandomSelectionOfSongsFromCorpus()
 
-trainingLibrary.getDataFromAllSongsInFolder()  # 101 songs
+trainingLibrary.getDataFromAllSongsInFolder()
 
 # ---------------------------------------------------
 
@@ -23,8 +23,3 @@ mapping.mappingNoteToIntAllSongs()
 # ---------------------------------------------------
 
 modelV3.LSTMFunction()
-
-
-
-
-
