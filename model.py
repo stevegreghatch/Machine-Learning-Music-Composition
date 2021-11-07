@@ -274,6 +274,7 @@ def LSTMFunction():
     for element in predictedSong:
         noteToSet = element.split(':')[0]
         durationToSet = element.split(':')[1]
+        # convert duration to float if in fraction format ex. '17/3'
         if '/' in durationToSet:
             durationToSet = durationToSet.split('/')
             num = int(durationToSet[0])
