@@ -115,12 +115,29 @@ def LSTMFunction():
     print(inputShape)
 
     model = Sequential()
+    # model version 1
     model.add(CuDNNLSTM(
-        128,
+        256,
         input_shape=inputShape,
         return_sequences=True
     ))
+    model.add(CuDNNLSTM(256))
+    model.add(Dropout(0.2))
+    model.add(Dense(numberOfUniqueElements))
+    model.add(Activation('softmax'))
     model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
+
+    # model version 2
+    '''
+    model.add(Bidirectional(CuDNNLSTM(
+        128,
+        input_shape=inputShape,
+        return_sequences=True
+    )))
+    model.add(Bidirectional(CuDNNLSTM(128, return_sequences=True)))
+    model.add(TimeDistributed(Dense(64, activation='sigmoid')))
+    model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
+    '''
 
     print(model.summary())
 
@@ -136,7 +153,7 @@ def LSTMFunction():
 
     model.fit(x=modelInput,
               y=modelTarget,
-              epochs=5,
+              epochs=20,
               verbose=1,
               callbacks=callbacks_list,
               )
@@ -175,12 +192,30 @@ def LSTMFunction():
     # print(inputShape)
 
     model = Sequential()
+    # model version 1
     model.add(CuDNNLSTM(
-        128,
+        256,
         input_shape=inputShape,
         return_sequences=True
     ))
+    model.add(CuDNNLSTM(256))
+    model.add(Dropout(0.2))
+    model.add(Dense(numberOfUniqueElements))
+    model.add(Activation('softmax'))
     model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
+
+    # model version 2
+    '''
+    model.add(Bidirectional(CuDNNLSTM(
+        128,
+        input_shape=inputShape,
+        return_sequences=True
+    )))
+    model.add(Bidirectional(CuDNNLSTM(128, return_sequences=True)))
+    model.add(TimeDistributed(Dense(64, activation='sigmoid')))
+    model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
+    '''
+
     model.load_weights('model-best-.hdf5')
 
     print(model.summary())
@@ -198,7 +233,7 @@ def LSTMFunction():
 
     predictedSong = []
     # set number of note:duration elements for output composition
-    for i in range(largestNumberOfElements):
+    for i in range(200):
         # reshape sequence to 3D
         predictionInputReshaped = numpy.reshape(sequence, (1, len(sequence), 1))
         # print('predictionInputReshaped')
@@ -319,5 +354,5 @@ def LSTMFunction():
     # print('outputComposition')
     # print(outputComposition)
     midiStream = stream.Stream(outputComposition)
-    midiStream.write('midi', fp='Midi_Output/outputComposition.mid')
+    midiStream.write('midi', fp='-outputComposition.mid')
     midiStream.show('midi')
