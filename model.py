@@ -62,7 +62,7 @@ def LSTMFunction():
     # print('noteAndDurationToIntWithEnumerate')
     # print(noteAndDurationToIntWithEnumerate)
 
-    sequenceLength = 100
+    sequenceLength = 50
     modelInput = []
     modelTarget = []
     for i in range(0, len(noteAndDurationToIntOneList) - sequenceLength, 1):
@@ -121,6 +121,7 @@ def LSTMFunction():
         input_shape=inputShape,
         return_sequences=True
     ))
+    model.add(Dropout(0.2))
     model.add(CuDNNLSTM(256))
     model.add(Dropout(0.2))
     model.add(Dense(numberOfUniqueElements))
@@ -153,7 +154,7 @@ def LSTMFunction():
 
     model.fit(x=modelInput,
               y=modelTarget,
-              epochs=20,
+              epochs=150,
               verbose=1,
               callbacks=callbacks_list,
               )
@@ -198,6 +199,7 @@ def LSTMFunction():
         input_shape=inputShape,
         return_sequences=True
     ))
+    model.add(Dropout(0.2))
     model.add(CuDNNLSTM(256))
     model.add(Dropout(0.2))
     model.add(Dense(numberOfUniqueElements))
@@ -221,7 +223,7 @@ def LSTMFunction():
     print(model.summary())
 
     # get prediction from model
-    # start by getting 100 sequence from model input
+    # start by getting sequence from model input
     startInt = numpy.random.randint(0, len(modelInputForOutput)-1)
     # print('startInt')
     # print(startInt)
@@ -233,7 +235,7 @@ def LSTMFunction():
 
     predictedSong = []
     # set number of note:duration elements for output composition
-    for i in range(200):
+    for i in range(500):
         # reshape sequence to 3D
         predictionInputReshaped = numpy.reshape(sequence, (1, len(sequence), 1))
         # print('predictionInputReshaped')
@@ -354,5 +356,5 @@ def LSTMFunction():
     # print('outputComposition')
     # print(outputComposition)
     midiStream = stream.Stream(outputComposition)
-    midiStream.write('midi', fp='-outputComposition.mid')
+    midiStream.write('midi', fp='C:/Users/steve/Desktop/Midi_Output/outputComposition.mid')
     midiStream.show('midi')
