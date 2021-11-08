@@ -304,7 +304,7 @@ def LSTMFunction():
     print('predictedSong')
     print(predictedSong)
 
-    # createMidi
+    # create output composition
     outputComposition = []
     for element in predictedSong:
         noteToSet = element.split(':')[0]
