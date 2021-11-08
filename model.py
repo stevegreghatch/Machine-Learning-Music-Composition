@@ -356,5 +356,5 @@ def LSTMFunction():
     # print('outputComposition')
     # print(outputComposition)
     midiStream = stream.Stream(outputComposition)
-    midiStream.write('midi', fp='C:/Users/steve/Desktop/Midi_Output/outputComposition.mid')
+    midiStream.write('midi', fp='Midi_Output/outputComposition.mid')
     midiStream.show('midi')
