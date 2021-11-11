@@ -1,12 +1,4 @@
-# import tensorflow.keras.preprocessing
-# from keras.preprocessing.sequence import TimeseriesGenerator
-# from sklearn.model_selection import train_test_split
-
-from keras.models import Sequential
-from keras.layers import LSTM, CuDNNLSTM, Dense, Dropout, Activation, BatchNormalization, TimeDistributed, Bidirectional
-from keras.callbacks import ModelCheckpoint
-from keras.utils import np_utils
-
+import copy
 import logging
 import os
 import numpy
@@ -14,9 +6,18 @@ import mapping
 
 from music21 import *
 
+from keras.models import Sequential
+from keras.layers import CuDNNLSTM, Dense, Dropout, Activation
+from keras.callbacks import ModelCheckpoint
+from keras.utils import np_utils
+
 # used to disable tensorflow info messages
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 logging.getLogger('tensorflow').disabled = True
+
+outputComposition = []
+historyLoss = []
+historyAccuracy = []
 
 def LSTMFunction():
     # input --------------------------------------------------------------------------------------
@@ -59,10 +60,10 @@ def LSTMFunction():
     # print('noteAndDurationToIntOneList')
     # print(noteAndDurationToIntOneList)
     noteAndDurationToIntWithEnumerate = mapping.noteAndDurationToIntWithEnumerate
-    # print('noteAndDurationToIntWithEnumerate')
-    # print(noteAndDurationToIntWithEnumerate)
+    print('noteAndDurationToIntWithEnumerate')
+    print(noteAndDurationToIntWithEnumerate)
 
-    sequenceLength = 50
+    sequenceLength = 15
     modelInput = []
     modelTarget = []
     for i in range(0, len(noteAndDurationToIntOneList) - sequenceLength, 1):
@@ -73,8 +74,8 @@ def LSTMFunction():
     # print('\n')
     # print('modelInput')
     # print(modelInput)
-    # print('len(modelInput)')
-    # print(len(modelInput))
+    print('len(modelInput)')
+    print(len(modelInput))
     numberOfSequences = len(modelInput)
     print('numberOfSequences')
     print(numberOfSequences)
@@ -139,12 +140,12 @@ def LSTMFunction():
     )
     callbacks_list = [checkpoint]
 
-    model.fit(x=modelInput,
-              y=modelTarget,
-              epochs=150,
-              verbose=1,
-              callbacks=callbacks_list,
-              )
+    history = model.fit(x=modelInput,
+                        y=modelTarget,
+                        epochs=200,
+                        verbose=1,
+                        callbacks=callbacks_list,
+                        )
 
     # output --------------------------------------------------------------------------------------
     # use model for output
@@ -196,22 +197,22 @@ def LSTMFunction():
 
     print(model.summary())
 
-    # get predictions from model
+    # GET PREDICTIONS FROM MODEL
     # get desired number output compositions
     for f in range(10):
-        # start by getting sequence from model input
-        startInt = numpy.random.randint(0, len(modelInputForOutput)-1)
+        # version 1 = start by getting sequence from model input
+        startInt = numpy.random.randint(0, len(modelInputForOutput) - 1)
         # print('startInt')
         # print(startInt)
         sequence = modelInputForOutput[startInt]
         # print('sequence')
         # print(sequence)
-        # print('len(sequenceFromStartInt)')
-        # print(len(sequenceFromStartInt))
+        # print('len(sequence)')
+        # print(len(sequence))
 
         predictedSong = []
         # set number of note:duration elements for output composition
-        for i in range(500):
+        for i in range(250):
             # reshape sequence to 3D
             predictionInputReshaped = numpy.reshape(sequence, (1, len(sequence), 1))
             # print('predictionInputReshaped')
@@ -283,7 +284,6 @@ def LSTMFunction():
         print(predictedSong)
 
         # create output composition
-        outputComposition = []
         for element in predictedSong:
             noteToSet = element.split(':')[0]
             durationToSet = element.split(':')[1]
@@ -292,7 +292,7 @@ def LSTMFunction():
                 durationToSet = durationToSet.split('/')
                 num = int(durationToSet[0])
                 denom = int(durationToSet[1])
-                durationToSet = "{:.2f}".format(float(num/denom))
+                durationToSet = "{:.2f}".format(float(num / denom))
             # regular note
             if len(noteToSet) <= 3:
                 newNote = note.Note(noteToSet)
@@ -332,9 +332,31 @@ def LSTMFunction():
         # print('outputComposition')
         # print(outputComposition)
         midiStream = stream.Stream(outputComposition)
+        # print('midiStreamInLSTMFunction')
+        # print(midiStream)
 
         n = 0
-        while os.path.exists('-Midi_Output/outputComposition%s.mid' % n):
+        while os.path.exists('-Desktop/Midi_Output/outputComposition%s.mid' % n):
             n += 1
-        midiStream.write('midi', fp=('-Midi_Output/outputComposition%s.mid' % n))
+        midiStream.write('midi', fp=('-Desktop/Midi_Output/outputComposition%s.mid' % n))
         # midiStream.show('midi')
+
+        historyLoss.extend(history.history['loss'])
+        # print('historyLoss')
+        # print(historyLoss)
+
+        historyAccuracy.extend(history.history['accuracy'])
+        # print('historyAccuracy')
+        # print(historyAccuracy)
+
+def getMidiStream():
+    midiStream = stream.Stream(outputComposition)
+    return midiStream
+
+def getHistoryLoss():
+    loss = historyLoss
+    return loss
+
+def getAccuracyHistory():
+    accuracy = historyAccuracy
+    return accuracy
