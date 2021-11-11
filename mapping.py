@@ -3,9 +3,9 @@ import trainingLibrary
 
 # map noteAndDuration elements to int value while maintaining order of composition
 
-noteToIntWithData = []
-noteToIntList = []
-noteToIntLists = []
+noteAndDurationToIntWithEnumerate = []
+noteAndDurationToIntOneList = []
+noteAndDurationToIntMultipleLists = []
 
 def mappingOneSong():
     # get extracted data
@@ -15,14 +15,14 @@ def mappingOneSong():
     uniqueValues = numpy.unique(listOfAllData)
     # give each unique element a number
     for numberAndData in (enumerate(uniqueValues)):
-        noteToIntWithData.append(numberAndData)
+        noteAndDurationToIntWithEnumerate.append(numberAndData)
     # match each element with its number
     for data in listOfAllData:
         for numberAndData in (enumerate(uniqueValues)):
             if data == numberAndData[1]:
                 data = numberAndData[0]
-                noteToIntList.append(data)
-    print(noteToIntList)
+                noteAndDurationToIntOneList.append(data)
+    print(noteAndDurationToIntOneList)
 
     # ---------------------------------------------
 
@@ -38,7 +38,7 @@ def mappingNoteToIntAllSongs():
     uniqueValues = numpy.unique(listOfAllElements)
     # give each unique element a number
     for numberAndData in enumerate(uniqueValues):
-        noteToIntWithData.append(numberAndData)
+        noteAndDurationToIntWithEnumerate.append(numberAndData)
     # match each element with its number and convert back into list of lists
     for listOfNotesAndDurations in trainingLibrary.listOfAllNotesAndDurations:
         newSongList = []
@@ -47,10 +47,10 @@ def mappingNoteToIntAllSongs():
                 # print(numberAndData)
                 if element == numberAndData[1]:
                     element = numberAndData[0]
-                    noteToIntList.append(element)
+                    noteAndDurationToIntOneList.append(element)
                     newSongList.append(element)
-        noteToIntLists.append(newSongList)
-    # print(noteToIntWithData)
+        noteAndDurationToIntMultipleLists.append(newSongList)
+    # print(noteAndDurationToIntWithData)
     # print('\n')
     # print(noteToIntList)
     # print('\n')
