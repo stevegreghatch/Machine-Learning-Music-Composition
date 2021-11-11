@@ -1,11 +1,6 @@
 import copy
 import random
 import os
-import logging
-import numpy
-import mapping
-import collections
-
 from music21 import *
 
 listOfNotesAndDurations = []
@@ -50,7 +45,8 @@ def getDataFromRandomSelectionOfSongsFromCorpus():
             listOfPathsToChooseFrom.append(filePath)
 
     # selects desired number of random paths from selected composers from Corpus
-    for i in range(400):
+    # 116 chosen to match number of midi files from personal collection
+    for i in range(116):
         chosenPath = random.choice(listOfPathsToChooseFrom)
         if chosenPath not in listOfChosenPaths:
             listOfChosenPaths.append(chosenPath)
@@ -83,7 +79,7 @@ def returnRandomPathFromPersonalCollection():
     return selectedPath
 
 def playRandomSelectionFromPersonalCollection():
-    for i in range(10):
+    for i in range(1):
         selectedPath = str(returnRandomPathFromPersonalCollection())
         work = converter.parse(selectedPath)
         title = os.path.basename(os.path.normpath(selectedPath))
@@ -95,11 +91,10 @@ def playRandomSelectionFromPersonalCollection():
         # work.show('text')
         listOfAllNotesAndDurations.append(copy.deepcopy(data))
 
-
 # function for all data -----------------------------------------------
 def getDataFromAllSongsInFolder():
     listOfFilePaths = []
-    folder = '-Desktop/Midi_Files/'
+    folder = '-/Desktop/Midi_Files/'
     listOfFiles = os.listdir(folder)
 
     # get list of file paths
@@ -116,4 +111,5 @@ def getDataFromAllSongsInFolder():
         # print(data)
         # print('\n')
         listOfAllNotesAndDurations.append(copy.deepcopy(data))
+        # work.show('midi')
     # print(listOfAllNotesAndDurations)
