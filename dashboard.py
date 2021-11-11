@@ -1,9 +1,7 @@
-from music21 import *
-
 import model
 
+from music21 import *
 from matplotlib import pyplot, image
-
 from datetime import datetime
 
 # Data Visualization -------------------------------------------------
