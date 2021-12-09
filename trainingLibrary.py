@@ -1,6 +1,7 @@
 import copy
 import random
 import os
+
 from music21 import *
 
 listOfNotesAndDurations = []
@@ -66,35 +67,10 @@ def getDataFromRandomSelectionOfSongsFromCorpus():
 
 # training set 2 -------------------------------------------------------------------------------------------------------
 # personal collection
-
-# functions for random selection -------------------------------
-def returnRandomPathFromPersonalCollection():
-    folder = '-Desktop/Midi_Files/'
-    listOfFiles = os.listdir(folder)
-    listOfFilePaths = []
-    for file in listOfFiles:
-        filePath = folder + file
-        listOfFilePaths.append(filePath)
-    selectedPath = random.choice(listOfFilePaths)
-    return selectedPath
-
-def playRandomSelectionFromPersonalCollection():
-    for i in range(1):
-        selectedPath = str(returnRandomPathFromPersonalCollection())
-        work = converter.parse(selectedPath)
-        title = os.path.basename(os.path.normpath(selectedPath))
-        data = getListOfNotesAndDurations(work)
-        print(title)
-        # print(data)
-        # print('\n')
-        # work.show('midi')
-        # work.show('text')
-        listOfAllNotesAndDurations.append(copy.deepcopy(data))
-
 # function for all data -----------------------------------------------
 def getDataFromAllSongsInFolder():
     listOfFilePaths = []
-    folder = '-/Desktop/Midi_Files/'
+    folder = 'insert path here'  # update path
     listOfFiles = os.listdir(folder)
 
     # get list of file paths
@@ -112,4 +88,5 @@ def getDataFromAllSongsInFolder():
         # print('\n')
         listOfAllNotesAndDurations.append(copy.deepcopy(data))
         # work.show('midi')
-    # print(listOfAllNotesAndDurations)
+        # work.show('text')
+    print(listOfAllNotesAndDurations)
