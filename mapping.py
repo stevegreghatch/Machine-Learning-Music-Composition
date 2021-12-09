@@ -51,7 +51,5 @@ def mappingNoteToIntAllSongs():
                     newSongList.append(element)
         noteAndDurationToIntMultipleLists.append(newSongList)
     # print(noteAndDurationToIntWithData)
-    # print('\n')
     # print(noteToIntList)
-    # print('\n')
     # print(noteToIntLists)
