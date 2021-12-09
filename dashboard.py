@@ -2,6 +2,7 @@ import model
 
 from music21 import *
 from matplotlib import pyplot, image
+
 from datetime import datetime
 
 # Data Visualization -------------------------------------------------
@@ -15,7 +16,7 @@ def lossVsEpochGraph():
     pyplot.ylabel('Loss')
     pyplot.xlabel('Epoch')
     pyplot.legend(['Loss'], loc='upper right')
-    pyplot.savefig('-Desktop/Graph_Output/Loss vs Epoch.png')
+    pyplot.savefig('insert folder path here/Loss vs Epoch.png')  # update path 1
     pyplot.close()
 
 def accuracyVsEpochGraph():
@@ -27,7 +28,7 @@ def accuracyVsEpochGraph():
     pyplot.ylabel('Accuracy')
     pyplot.xlabel('Epoch')
     pyplot.legend(['Accuracy'], loc='upper right')
-    pyplot.savefig('-Desktop/Graph_Output/Accuracy vs Epoch.png')
+    pyplot.savefig('insert folder path here/Accuracy vs Epoch.png')  # update path 2
     pyplot.close()
 
 def noteQuarterLengthByPitch():
@@ -36,7 +37,7 @@ def noteQuarterLengthByPitch():
     g = graph.plot.HorizontalBarPitchSpaceOffset(midiStream)
     g.doneAction = None
     g.run()
-    g.write(fp='-Desktop/Graph_Output/Note Quarter Length By Pitch.png')
+    g.write(fp='insert folder path here/Note Quarter Length By Pitch.png')  # update path 3
 
 
 def pitchByQuarterLengthScatterWeighted():
@@ -45,7 +46,7 @@ def pitchByQuarterLengthScatterWeighted():
     g = graph.plot.ScatterWeightedPitchSpaceQuarterLength(midiStream)
     g.doneAction = None
     g.run()
-    g.write(fp='-Desktop/Graph_Output/Count of Pitch and Quarter Length.png')
+    g.write(fp='insert folder path here/Count of Pitch and Quarter Length.png')  # update path 4
 
 def pitchHistogram():
     # vis5 = 'Pitch Histogram'
@@ -53,7 +54,7 @@ def pitchHistogram():
     g = graph.plot.HistogramPitchSpace(midiStream)
     g.doneAction = None
     g.run()
-    g.write(fp='-Desktop/Graph_Output/Pitch Histogram.png')
+    g.write(fp='insert folder path here/Pitch Histogram.png')  # update path 5
 
 def dash():
 
@@ -75,27 +76,27 @@ def dash():
     ax5 = pyplot.subplot2grid((3, 3), (1, 2), rowspan=2, colspan=1, fig=fig)
 
     # vis1 = 'Loss vs Epoch'
-    vis1IMG = pyplot.imread('-Desktop/Graph_Output/Loss vs Epoch.png')
+    vis1IMG = pyplot.imread('insert folder path here/Loss vs Epoch.png')  # update path 1
     ax1.imshow(vis1IMG)
     ax1.axis('off')
 
     # vis2 = 'Accuracy vs Epoch'
-    vis2IMG = pyplot.imread('-Desktop/Graph_Output/Accuracy vs Epoch.png')
+    vis2IMG = pyplot.imread('insert folder path here/Accuracy vs Epoch.png')  # update path 2
     ax2.imshow(vis2IMG)
     ax2.axis('off')
 
     # vis3 = 'Note Quarter Length by Pitch'
-    vis3IMG = image.imread('-Desktop/Graph_Output/Note Quarter Length By Pitch.png')
+    vis3IMG = image.imread('insert folder path here/Note Quarter Length By Pitch.png')  # update path 3
     ax3.imshow(vis3IMG)
     ax3.axis('off')
 
     # vis4 = 'Pitch Histogram'
-    vis4IMG = image.imread('-Desktop/Graph_Output/Pitch Histogram.png')
+    vis4IMG = image.imread('insert folder path here/Pitch Histogram.png')  # update path 4
     ax4.imshow(vis4IMG)
     ax4.axis('off')
 
     # vis5 = 'Pitch by Quarter Length Scatter (weighted)'
-    vis5IMG = image.imread('-Desktop/Graph_Output/Count of Pitch and Quarter Length.png')
+    vis5IMG = image.imread('insert folder path here/Count of Pitch and Quarter Length.png')  # update path 5
     ax5.imshow(vis5IMG)
     ax5.axis('off')
 
@@ -104,6 +105,4 @@ def dash():
     fig.subplots_adjust(wspace=0.0, left=0.0, right=0.95)
 
     pyplot.show()
-
-    # pyplot.close(fig)
 
