@@ -63,7 +63,7 @@ def LSTMFunction():
     print('noteAndDurationToIntWithEnumerate')
     print(noteAndDurationToIntWithEnumerate)
 
-    sequenceLength = 15
+    sequenceLength = 25
     modelInput = []
     modelTarget = []
     for i in range(0, len(noteAndDurationToIntOneList) - sequenceLength, 1):
@@ -142,7 +142,7 @@ def LSTMFunction():
 
     history = model.fit(x=modelInput,
                         y=modelTarget,
-                        epochs=200,
+                        epochs=1000,
                         verbose=1,
                         callbacks=callbacks_list,
                         )
@@ -199,7 +199,7 @@ def LSTMFunction():
 
     # GET PREDICTIONS FROM MODEL
     # get desired number output compositions
-    for f in range(10):
+    for f in range(1):
         # version 1 = start by getting sequence from model input
         startInt = numpy.random.randint(0, len(modelInputForOutput) - 1)
         # print('startInt')
@@ -336,10 +336,10 @@ def LSTMFunction():
         # print(midiStream)
 
         n = 0
-        while os.path.exists('-Desktop/Midi_Output/outputComposition%s.mid' % n):
+        while os.path.exists('insert folder path here/outputComposition%s.mid' % n):  # update path
             n += 1
-        midiStream.write('midi', fp=('-Desktop/Midi_Output/outputComposition%s.mid' % n))
-        # midiStream.show('midi')
+        midiStream.write('midi', fp=('insert folder path here/outputComposition%s.mid' % n))  # update path
+        midiStream.show('midi')
 
         historyLoss.extend(history.history['loss'])
         # print('historyLoss')
